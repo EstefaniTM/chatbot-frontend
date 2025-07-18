@@ -24,7 +24,6 @@ const RegisterForm = ({ onAuthSuccess, onSwitchToLogin }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
-    username: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -41,8 +40,8 @@ const RegisterForm = ({ onAuthSuccess, onSwitchToLogin }) => {
   };
 
   const validateForm = () => {
-    if (!formData.username || !formData.email || !formData.password) {
-      setError('Nombre de usuario, email y contraseña son requeridos');
+    if (!formData.email || !formData.password) {
+      setError('Email y contraseña son requeridos');
       return false;
     }
 
@@ -69,7 +68,6 @@ const RegisterForm = ({ onAuthSuccess, onSwitchToLogin }) => {
 
     try {
       const response = await axios.post(`${BACKEND_URL}/auth/register`, {
-        username: formData.username,
         email: formData.email,
         password: formData.password
       });
@@ -117,16 +115,6 @@ const RegisterForm = ({ onAuthSuccess, onSwitchToLogin }) => {
       )}
 
       <form onSubmit={handleSubmit}>
-        <TextField
-          fullWidth
-          label="Nombre de usuario"
-          name="username"
-          type="text"
-          value={formData.username}
-          onChange={handleInputChange}
-          margin="normal"
-        />
-
         <TextField
           fullWidth
           label="Email"

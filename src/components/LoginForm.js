@@ -23,7 +23,7 @@ const LoginForm = ({ onAuthSuccess, onSwitchToRegister }) => {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    username: '',
+    email: '',
     password: ''
   });
 
@@ -38,8 +38,8 @@ const LoginForm = ({ onAuthSuccess, onSwitchToRegister }) => {
   };
 
   const validateForm = () => {
-    if (!formData.username || !formData.password) {
-      setError('Usuario y contraseña son requeridos');
+    if (!formData.email || !formData.password) {
+      setError('Email y contraseña son requeridos');
       return false;
     }
     return true;
@@ -47,40 +47,38 @@ const LoginForm = ({ onAuthSuccess, onSwitchToRegister }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (!validateForm()) return;
-
     setLoading(true);
     setError('');
-
+    let authData = null;
     try {
-    console.log('LOGIN DATA:', formData); // <-- Aquí agregas el log
-    const response = await axios.post(`${BACKEND_URL}/auth/login`, {
-      username: formData.username,
-      password: formData.password
-    });
-
-      console.log('RESPUESTA LOGIN:', response.data); // <-- Depura la respuesta
-
+      console.log('LOGIN DATA:', formData);
+      const response = await axios.post(`${BACKEND_URL}/auth/login`, {
+        email: formData.email,
+        password: formData.password
+      });
+      console.log('RESPUESTA LOGIN:', response.data);
       if (response.data.data?.access_token) {
-        const authData = {
+        authData = {
           token: response.data.data.access_token,
           user: response.data.data.user
         };
-        onAuthSuccess(authData);
       } else if (response.data.access_token) {
-        const authData = {
+        authData = {
           token: response.data.access_token,
           user: response.data.user
         };
-        onAuthSuccess(authData);
       } else {
         setError('No se recibió token de autenticación');
       }
     } catch (error) {
+      console.log('Error en login:', error);
       setError(error.response?.data?.message || 'Error en el login');
     } finally {
       setLoading(false);
+      if (authData) {
+        onAuthSuccess(authData);
+      }
     }
   }
 
@@ -104,9 +102,9 @@ const LoginForm = ({ onAuthSuccess, onSwitchToRegister }) => {
         <TextField
           fullWidth
           label="Email"
-          name="username"
-          type="text"
-          value={formData.username}
+          name="email"
+          type="email"
+          value={formData.email}
           onChange={handleInputChange}
           margin="normal"
           InputProps={{

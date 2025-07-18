@@ -19,7 +19,10 @@ const AuthForm = ({ open, onClose, initialTab = 'login' }) => {
 
   const handleAuthSuccess = (authData) => {
     login(authData);
-    onClose();
+    console.log('Login exitoso, cerrando modal...');
+    window.requestAnimationFrame(() => {
+      onClose();
+    });
   };
 
   return (

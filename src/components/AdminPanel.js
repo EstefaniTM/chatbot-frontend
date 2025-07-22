@@ -12,13 +12,26 @@ const AdminPanel = () => {
   const [curlInput, setCurlInput] = React.useState(loginCurl);
   const [curlResult, setCurlResult] = React.useState(null);
   const [curlLoading, setCurlLoading] = React.useState(false);
-  const [section, setSection] = React.useState('users');
   const [users, setUsers] = React.useState([]);
   const [editUserId, setEditUserId] = React.useState(null);
   const [editEmail, setEditEmail] = React.useState('');
   const [editRole, setEditRole] = React.useState('user');
-  const [csvFiles, setCsvFiles] = React.useState([]);
-  const [conversations, setConversations] = React.useState([]);
+
+  // Cargar usuarios al abrir el panel
+  React.useEffect(() => {
+    const token = localStorage.getItem('token');
+    fetch('https://nestjs-chatbot-backeb-api.desarrollo-software.xyz/users?page=1&limit=20', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data.data?.data)) setUsers(data.data.data);
+        else if (Array.isArray(data.data)) setUsers(data.data);
+        else if (Array.isArray(data)) setUsers(data);
+        else setUsers([]);
+      });
+  }, []);
+
   // Función para login automático
   const handleAutoLogin = async () => {
     setLoginLoading(true);
@@ -67,47 +80,6 @@ const AdminPanel = () => {
     setCurlLoading(false);
   };
 
-  React.useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (section === 'users') {
-      fetch('https://nestjs-chatbot-backeb-api.desarrollo-software.xyz/users?page=1&limit=20', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (Array.isArray(data.data?.data)) setUsers(data.data.data);
-          else if (Array.isArray(data.data)) setUsers(data.data);
-          else if (Array.isArray(data)) setUsers(data);
-          else setUsers([]);
-        });
-    }
-    if (section === 'csv') {
-      fetch('https://nestjs-chatbot-backeb-api.desarrollo-software.xyz/csv-uploads', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (Array.isArray(data)) setCsvFiles(data);
-          else if (Array.isArray(data.files)) setCsvFiles(data.files);
-          else if (Array.isArray(data.data)) setCsvFiles(data.data);
-          else setCsvFiles([]);
-        });
-    }
-    if (section === 'conversations') {
-      fetch('https://nestjs-chatbot-backeb-api.desarrollo-software.xyz/conversations', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (Array.isArray(data)) setConversations(data);
-          else if (Array.isArray(data.conversations)) setConversations(data.conversations);
-          else if (Array.isArray(data.data)) setConversations(data.data);
-          else setConversations([]);
-        })
-        .catch(() => setConversations([]));
-    }
-  }, [section]);
-
   if (!user || user.role !== 'admin') {
     return (
       <Box sx={{ p: 3 }}>
@@ -116,21 +88,6 @@ const AdminPanel = () => {
     );
   }
 
-  // Eliminar usuario
-  // ...existing code...
-
-  // Editar usuario
-  // ...existing code...
-
-  // Eliminar CSV
-  // ...existing code...
-
-  // Eliminar conversación
-  // ...existing code...
-  // Panel CURL
-  // ...existing code...
-
-  // ...existing code...
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom>Panel de Administración</Typography>

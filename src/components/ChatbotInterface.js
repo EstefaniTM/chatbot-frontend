@@ -27,9 +27,7 @@ import { DataGrid } from '@mui/x-data-grid';
 import Papa from 'papaparse';
 
 const ChatbotInterface = ({ preloadedData = null, fileName = '', conversationId }) => {
-  // Estado para listado de conversaciones del usuario
-  const [userConversations, setUserConversations] = useState([]);
-  const [loadingConvs, setLoadingConvs] = useState(false);
+  // ...variables eliminadas por no ser usadas...
   // Eliminar el estado inicial, siempre leer de localStorage
   const getUserId = () => localStorage.getItem('userId') || '';
   const [currentUserId, setCurrentUserId] = useState(getUserId());
@@ -48,7 +46,6 @@ const ChatbotInterface = ({ preloadedData = null, fileName = '', conversationId 
       ]);
       setInventoryData([]);
       setInventoryFileName('');
-      setUserConversations([]);
       localStorage.removeItem('conversationId');
       // Eliminado: console.log('[DEBUG] Estado después de limpiar (logout):', { currentUserId, inventoryFileName, userConversations, messages });
     };
@@ -83,7 +80,6 @@ const ChatbotInterface = ({ preloadedData = null, fileName = '', conversationId 
       ]);
       setInventoryData([]);
       setInventoryFileName('');
-      setUserConversations([]);
       localStorage.removeItem('conversationId');
       console.log('[DEBUG] Limpieza por logout detectado');
     }
@@ -95,28 +91,6 @@ const ChatbotInterface = ({ preloadedData = null, fileName = '', conversationId 
     const token = localStorage.getItem('token');
     if (!userId || !token) return; // No llamar si no hay usuario válido
     if (currentUserId !== userId) return; // Esperar a que el id se sincronice
-    setLoadingConvs(true);
-    const fetchUserConversations = async () => {
-      try {
-        // Eliminado: console.log('[DEBUG] fetchUserConversations - Haciendo petición a:', `https://nestjs-chatbot-backeb-api.desarrollo-software.xyz/conversations/user/${userId}`);
-        const res = await axios.get(
-          `https://nestjs-chatbot-backeb-api.desarrollo-software.xyz/conversations/user/${userId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` }
-          }
-        );
-        const allConvs = res.data?.data || [];
-        const filtered = allConvs.filter(conv => (conv.user === userId || conv.user === String(userId)));
-        setUserConversations(filtered);
-        // Eliminado: console.log('[DEBUG] fetchUserConversations - Conversaciones recibidas:', filtered);
-      } catch (err) {
-        setUserConversations([]);
-        // Eliminado: console.log('[DEBUG] fetchUserConversations - Error en petición:', err);
-      } finally {
-        setLoadingConvs(false);
-      }
-    };
-    fetchUserConversations();
   }, [currentUserId]);
   // Estados principales
   const [messages, setMessages] = useState([]);

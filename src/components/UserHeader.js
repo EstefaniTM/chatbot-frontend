@@ -17,7 +17,6 @@ import {
 import {
   Logout as LogoutIcon,
   Login,
-  PersonAdd,
   Settings,
   SmartToy,
   Folder as FolderIcon,
@@ -27,6 +26,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const UserHeader = ({ onOpenAuth, onNavigateTo, currentPage }) => {
   const { user, logout, isAuthenticated } = useAuth();
+  const userId = user?.id || localStorage.getItem('userId');
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
@@ -165,14 +165,24 @@ const UserHeader = ({ onOpenAuth, onNavigateTo, currentPage }) => {
                   <Typography variant="body2" color="text.secondary">
                     {user?.email}
                   </Typography>
+                  <br />
+                  <span style={{fontSize:'0.8em',color:'#888'}}>ID: {userId}</span>
                 </Box>
                 <Divider />
-                <MenuItem onClick={handleClose}>
+                <MenuItem onClick={() => { onNavigateTo('settings'); handleClose(); }}>
                   <ListItemIcon>
                     <Settings fontSize="small" />
                   </ListItemIcon>
                   <ListItemText>Configuración</ListItemText>
                 </MenuItem>
+                {user?.role === 'admin' && (
+                  <MenuItem onClick={() => { onNavigateTo('admin'); handleClose(); }}>
+                    <ListItemIcon>
+                      <Settings fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>Panel Admin</ListItemText>
+                  </MenuItem>
+                )}
                 <MenuItem onClick={handleLogout}>
                   <ListItemIcon>
                     <LogoutIcon fontSize="small" />
@@ -196,7 +206,21 @@ const UserHeader = ({ onOpenAuth, onNavigateTo, currentPage }) => {
                   }
                 }}
               >
-                Iniciar Sesión o registrarte
+                Iniciar sesión
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={() => { onOpenAuth('register'); window.setTimeout(() => { window.dispatchEvent(new CustomEvent('setRegisterType', { detail: 'admin' })); }, 100); }}
+                sx={{
+                  color: 'white',
+                  borderColor: 'rgba(255,255,255,0.5)',
+                  '&:hover': {
+                    borderColor: 'white',
+                    background: 'rgba(255,255,255,0.1)'
+                  }
+                }}
+              >
+                Registrarte como admin
               </Button>
             </Box>
           )}

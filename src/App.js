@@ -1,3 +1,4 @@
+import FilesPage from './components/FilesPage';
 import React, { useState, useEffect } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -5,8 +6,9 @@ import { Box, Container } from '@mui/material';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import UserHeader from './components/UserHeader';
 import ChatbotInterface from './components/ChatbotInterface';
-import FilesPage from './components/FilesPage';
+import AdminPanel from './components/AdminPanel';
 import AuthForm from './components/AuthForm';
+import UserSettings from './components/UserSettings';
 
 const theme = createTheme({
   palette: {
@@ -45,7 +47,8 @@ const AppContent = () => {
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [authDialogTab, setAuthDialogTab] = useState('login');
   const [currentPage, setCurrentPage] = useState('chat'); // 'chat', 'files', 'settings'
-  const [inventoryData, setInventoryData] = useState([]);
+  // 'chat', 'files', 'settings', 'list'
+  // const [inventoryData, setInventoryData] = useState([]);
 
   // Si no está autenticado, no abrir automáticamente el diálogo
   // El usuario puede navegar y usar el chat sin autenticación
@@ -68,33 +71,44 @@ const AppContent = () => {
     setCurrentPage(page);
   };
 
-  const handleFileLoaded = (data, headers, fileName) => {
-    setInventoryData(data);
-    console.log('Archivo cargado:', { data, headers, fileName });
-  };
 
   const renderCurrentPage = () => {
     switch (currentPage) {
-      case 'files':
-        return (
-          <FilesPage
-            onFileLoaded={handleFileLoaded}
-          />
-        );
-      case 'settings':
-        return (
-          <Box sx={{ p: 3 }}>
-            <h2>Configuración</h2>
-            <p>Página de configuración en desarrollo...</p>
-          </Box>
-        );
-      default:
+      case 'settings': {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (user.role === 'admin') {
+          return <AdminPanel />;
+        } else {
+          return <UserSettings />;
+        }
+      }
+      case 'admin': {
+        // Mostrar siempre el panel de administración, sin importar el rol
+        return <AdminPanel />;
+      }
+      case 'files': {
+        return <FilesPage />;
+      }
+      default: {
+        // Leer el archivo CSV y conversationId seleccionados desde localStorage
+        let preloadedData = null;
+        let fileName = '';
+        let conversationId = localStorage.getItem('conversationId') || '';
+        try {
+          const selectedCsvFile = JSON.parse(localStorage.getItem('selectedCsvFile') || 'null');
+          if (selectedCsvFile && selectedCsvFile.data && Array.isArray(selectedCsvFile.data)) {
+            preloadedData = selectedCsvFile.data;
+            fileName = selectedCsvFile.originalname || selectedCsvFile.filename || '';
+          }
+        } catch (e) {}
         return (
           <ChatbotInterface 
-            inventoryData={inventoryData}
-            onNavigateToFiles={() => setCurrentPage('files')}
+            preloadedData={preloadedData}
+            fileName={fileName}
+            conversationId={conversationId}
           />
         );
+      }
     }
   };
 

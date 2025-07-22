@@ -52,31 +52,35 @@ const LoginForm = ({ onAuthSuccess, onSwitchToRegister }) => {
     setError('');
     let authData = null;
     try {
-      console.log('LOGIN DATA:', formData);
       const response = await axios.post(`${BACKEND_URL}/auth/login`, {
         email: formData.email,
         password: formData.password
       });
-      console.log('RESPUESTA LOGIN:', response.data);
       if (response.data.data?.access_token) {
         authData = {
           token: response.data.data.access_token,
-          user: response.data.data.user
+          user: response.data.data.user || { email: formData.email }
         };
       } else if (response.data.access_token) {
         authData = {
           token: response.data.access_token,
-          user: response.data.user
+          user: response.data.user || { email: formData.email }
         };
       } else {
         setError('No se recibió token de autenticación');
       }
     } catch (error) {
-      console.log('Error en login:', error);
       setError(error.response?.data?.message || 'Error en el login');
     } finally {
       setLoading(false);
       if (authData) {
+        // Guardar el email y el id en localStorage
+        if (authData.user && authData.user.email) {
+          localStorage.setItem('email', authData.user.email);
+        }
+        if (authData.user && authData.user.id) {
+          localStorage.setItem('userId', String(authData.user.id));
+        }
         onAuthSuccess(authData);
       }
     }

@@ -14,14 +14,7 @@ import {
 import { FaPaperPlane } from 'react-icons/fa';
 
 const Chatbot = () => {
-  const [messages, setMessages] = useState([
-    { 
-      id: 1, 
-      text: '¡Hola! Soy tu asistente virtual. ¿En qué puedo ayudarte?', 
-      sender: 'bot',
-      timestamp: new Date()
-    }
-  ]);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
@@ -36,6 +29,35 @@ const Chatbot = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Llamada automática al backend al montar el componente
+  useEffect(() => {
+    const fetchInitialBotMessage = async () => {
+      try {
+        const response = await axios.post(BACKEND_URL, {
+          message: '', // Puedes cambiar el mensaje inicial si lo deseas
+          userId: 'user-123',
+        });
+        const botMessage = {
+          id: Date.now(),
+          text: response.data.message || response.data.response || '¡Hola! Soy tu asistente virtual. ¿En qué puedo ayudarte?',
+          sender: 'bot',
+          timestamp: new Date()
+        };
+        setMessages([botMessage]);
+      } catch (error) {
+        setMessages([
+          {
+            id: Date.now(),
+            text: '¡Hola! Soy tu asistente virtual. ¿En qué puedo ayudarte?',
+            sender: 'bot',
+            timestamp: new Date()
+          }
+        ]);
+      }
+    };
+    fetchInitialBotMessage();
+  }, []);
 
   const sendMessage = async () => {
     if (input.trim() === '') return;

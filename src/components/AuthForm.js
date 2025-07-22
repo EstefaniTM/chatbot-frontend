@@ -3,7 +3,8 @@ import {
   Dialog, 
   DialogContent, 
   Box,
-  IconButton 
+  IconButton,
+  Button
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import LoginForm from './LoginForm';
@@ -12,6 +13,21 @@ import { useAuth } from '../contexts/AuthContext';
 
 const AuthForm = ({ open, onClose, initialTab = 'login' }) => {
   const [isLogin, setIsLogin] = useState(initialTab === 'login');
+  const [registerType, setRegisterType] = useState('user'); // 'user' o 'admin'
+
+  React.useEffect(() => {
+    const handler = (e) => {
+      if (e.detail === 'admin') {
+        setIsLogin(false);
+        setRegisterType('admin');
+      } else if (e.detail === 'user') {
+        setIsLogin(false);
+        setRegisterType('user');
+      }
+    };
+    window.addEventListener('setRegisterType', handler);
+    return () => window.removeEventListener('setRegisterType', handler);
+  }, []);
   const { login } = useAuth();
 
   const switchToRegister = () => setIsLogin(false);
@@ -19,7 +35,6 @@ const AuthForm = ({ open, onClose, initialTab = 'login' }) => {
 
   const handleAuthSuccess = (authData) => {
     login(authData);
-    console.log('Login exitoso, cerrando modal...');
     window.requestAnimationFrame(() => {
       onClose();
     });
@@ -46,6 +61,24 @@ const AuthForm = ({ open, onClose, initialTab = 'login' }) => {
           </IconButton>
         </Box>
 
+        {/* Botones para elegir tipo de registro */}
+        {!isLogin && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 2 }}>
+            <Button
+              variant={registerType === 'user' ? 'contained' : 'outlined'}
+              onClick={() => setRegisterType('user')}
+            >
+              Registrar usuario
+            </Button>
+            <Button
+              variant={registerType === 'admin' ? 'contained' : 'outlined'}
+              onClick={() => setRegisterType('admin')}
+            >
+              Registrar admin
+            </Button>
+          </Box>
+        )}
+
         {/* Contenido del formulario */}
         {isLogin ? (
           <LoginForm 
@@ -56,6 +89,7 @@ const AuthForm = ({ open, onClose, initialTab = 'login' }) => {
           <RegisterForm 
             onAuthSuccess={handleAuthSuccess} 
             onSwitchToLogin={switchToLogin} 
+            registerType={registerType}
           />
         )}
       </DialogContent>

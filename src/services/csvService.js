@@ -18,7 +18,10 @@ export const csvService = {
   // Obtener un archivo CSV específico
   getCsvFile: async (id) => {
     try {
-      const response = await axios.get(`${API_BASE}/${id}`);
+      const userId = localStorage.getItem('userId');
+      const response = await axios.get(`${API_BASE}/${id}`, {
+        headers: { 'X-User-Id': userId }
+      });
       return response.data;
     } catch (error) {
       console.error('Error obteniendo archivo CSV:', error);
@@ -44,7 +47,10 @@ export const csvService = {
   // Eliminar un archivo CSV específico
   deleteCsvFile: async (id) => {
     try {
-      const response = await axios.delete(`${API_BASE}/${id}`);
+      const userId = localStorage.getItem('userId');
+      const response = await axios.delete(`${API_BASE}/${id}`, {
+        headers: { 'X-User-Id': userId }
+      });
       return response.data;
     } catch (error) {
       console.error('Error eliminando archivo CSV:', error);
@@ -56,7 +62,7 @@ export const csvService = {
   deleteMultipleCsvFiles: async (ids) => {
     try {
       const response = await axios.delete(API_BASE, {
-        data: { ids }
+        data: { ids, userId: localStorage.getItem('userId') }
       });
       return response.data;
     } catch (error) {

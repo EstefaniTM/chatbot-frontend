@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+// registerType se recibe por props
 import {
   TextField,
   Button,
@@ -18,7 +19,8 @@ import {
 } from '@mui/icons-material';
 import axios from 'axios';
 
-const RegisterForm = ({ onAuthSuccess, onSwitchToLogin }) => {
+const RegisterForm = ({ onAuthSuccess, onSwitchToLogin, registerType = 'user' }) => {
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -26,7 +28,8 @@ const RegisterForm = ({ onAuthSuccess, onSwitchToLogin }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    adminPassword: ''
   });
 
   const BACKEND_URL = 'https://nestjs-chatbot-backeb-api.desarrollo-software.xyz';
@@ -60,22 +63,27 @@ const RegisterForm = ({ onAuthSuccess, onSwitchToLogin }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (!validateForm()) return;
-
     setLoading(true);
     setError('');
-
     try {
-      const response = await axios.post(`${BACKEND_URL}/auth/register`, {
+      const payload = {
         email: formData.email,
         password: formData.password
-      });
-
+      };
+      let endpoint = `${BACKEND_URL}/auth/register`;
+      if (registerType === 'admin') {
+        payload.adminPassword = formData.adminPassword;
+        endpoint = `${BACKEND_URL}/users/register-admin`;
+      }
+      const response = await axios.post(endpoint, payload);
       // Depura la respuesta real del backend
       console.log('RESPUESTA DEL BACKEND:', response.data);
-
-      // Ajusta aquí según la respuesta real
+      if (registerType === 'admin' && response.data && response.status === 201) {
+        setSuccess('¡Felicidades! Ahora puedes iniciar sesión normalmente en el login.');
+        setFormData({ email: '', password: '', confirmPassword: '', adminPassword: '' });
+        return;
+      }
       if (response.data.data?.access_token) {
         const authData = {
           token: response.data.data.access_token,
@@ -111,6 +119,11 @@ const RegisterForm = ({ onAuthSuccess, onSwitchToLogin }) => {
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
+        </Alert>
+      )}
+      {success && (
+        <Alert severity="success" sx={{ mb: 2 }}>
+          {success}
         </Alert>
       )}
 
@@ -185,6 +198,26 @@ const RegisterForm = ({ onAuthSuccess, onSwitchToLogin }) => {
             ),
           }}
         />
+
+        {registerType === 'admin' && (
+          <TextField
+            fullWidth
+            label="Contraseña secreta de admin"
+            name="adminPassword"
+            type="password"
+            value={formData.adminPassword}
+            onChange={handleInputChange}
+            margin="normal"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <LockIcon />
+                </InputAdornment>
+              ),
+            }}
+            helperText="Solo los administradores deben llenar este campo."
+          />
+        )}
 
         <Button
           type="submit"

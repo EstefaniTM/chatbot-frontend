@@ -13,23 +13,32 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [logoutReason, setLogoutReason] = useState('');
+
+  // Guardar el id en localStorage cuando se autentica
+  useEffect(() => {
+    if (user && user.id) {
+      localStorage.setItem('userId', String(user.id));
+    }
+  }, [user]);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  // Inicializar token desde sessionStorage si existe
-  const [token, setToken] = useState(() => sessionStorage.getItem('token') || null);
+  // Inicializar token desde localStorage si existe
+  const [token, setToken] = useState(() => localStorage.getItem('token') || null);
 
-  const logout = useCallback(() => {
+  const logout = useCallback((reason = '') => {
     setToken(null);
     setUser(null);
     setIsAuthenticated(false);
-    // Remover token de axios y de sessionStorage
+    setLogoutReason(''); // Elimina el mensaje de sesión finalizada
+    // Remover token y userId de axios y de localStorage
     delete axios.defaults.headers.common['Authorization'];
-    sessionStorage.removeItem('token');
+    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
   }, []);
 
   const checkAuthStatus = useCallback(async () => {
     try {
-      console.info('[AuthContext] checkAuthStatus - token:', token);
       if (token) {
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         // Llamar al backend para obtener el usuario actual
@@ -37,7 +46,6 @@ export const AuthProvider = ({ children }) => {
         if (response.data && response.data.user) {
           setUser(response.data.user);
           setIsAuthenticated(true);
-          console.info('[AuthContext] Usuario autenticado:', response.data.user);
         } else {
           setUser(null);
           setIsAuthenticated(false);
@@ -46,10 +54,8 @@ export const AuthProvider = ({ children }) => {
       } else {
         setUser(null);
         setIsAuthenticated(false);
-        console.info('[AuthContext] No hay token en memoria');
       }
     } catch (error) {
-      console.error('Error checking auth status:', error);
       setUser(null);
       setIsAuthenticated(false);
       logout();
@@ -93,7 +99,7 @@ export const AuthProvider = ({ children }) => {
       return;
     }
     setToken(newToken);
-    sessionStorage.setItem('token', newToken);
+    localStorage.setItem('token', newToken);
     axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
     // Esperar a que el token se actualice antes de consultar el backend
     setTimeout(async () => {
@@ -120,10 +126,16 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     token,
+    logoutReason,
   };
 
   return (
     <AuthContext.Provider value={value}>
+      {logoutReason && (
+        <div style={{ color: 'red', textAlign: 'center', margin: '16px 0' }}>
+          {logoutReason}
+        </div>
+      )}
       {children}
     </AuthContext.Provider>
   );

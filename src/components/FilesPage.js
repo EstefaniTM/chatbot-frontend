@@ -525,9 +525,7 @@ const FilesPage = () => {
                   return;
                 }
                 localStorage.setItem('selectedCsvFile', JSON.stringify(selectedFile));
-                // Verificar lectura inmediata
-                const testConvId = localStorage.getItem('conversationId');
-                const testCsvFile = localStorage.getItem('selectedCsvFile');
+                // ...existing code...
                 window.location.href = `/chat?fileId=${selectedFile._id}`;
               }
             }}
